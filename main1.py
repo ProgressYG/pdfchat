@@ -3,7 +3,7 @@
 ## 2023.10.03
 ##
 ## main.py를 이용하여 Streamlit 서비스 만들기
-##
+## =>Stream 출력 기능 추가(스트림 옵션)
 ##
 
 #env 환경변수 읽어 들이기(같은 폴더 "/.env"의 파일을 그대로 읽어옴)
@@ -11,10 +11,12 @@
 #load_dotenv()
 
 #split 와 chroma DB 간의 충돌 해결
-#sqlite3 문제 해결코드
+#sqlite3 문제 해결코드 ~~-> pip install pysqlite3-binary 필요
 #__import__('pysqlite3')
 #import sys
 #sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+#
+#pip install chromadb==0.3.29 로 크로마 DB 설치하면 문제해결
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter  #텍스트를 페이지 단위보다 더 Split하기
@@ -22,6 +24,9 @@ from langchain.vectorstores import Chroma
 from langchain.chat_models import ChatOpenAI
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.chains import RetrievalQA
+
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+
 
 from langchain.embeddings import OpenAIEmbeddings
 
@@ -75,19 +80,32 @@ if uploaded_file is not None:
    #Disk에 저장하는 예제
    #db = Chroma.from_documents(texts, embeddings_model, persist_directory="./chroma_db")
 
+   #Stream 받아 줄 Hander 만들기
+   from langchain.callbacks.base import BaseCallbackHandler
+   class StreamHandler(BaseCallbackHandler):
+      def __init__(self, container, initial_text=""):
+         self.container = container
+         self.text=initial_text
+      def on_llm_new_token(self, token: str, **kwargs) -> None:
+         self.text+=token
+         self.container.markdown(self.text)
+
    #Question
    st.header("PDF에게 질문해 보세요!!")
    question = st.text_input("질문을 입력하세요")
 
    if st.button("질문하기"):
-      with st.spinner('잠시 기다려주세요...!!') : 
+      with st.spinner('잠시 기다려주세요...!!') 
+
+         #Stream 출력을 위한 Chat Box 만들기(stream_hander)
+         chat_box = st.empty()
+         stream_hander = StreamHandler(chat_box)
+
          ## python langchain Doc -> USE cases -> Question Answering 참조
-         llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+         llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, openai_api_key=openai_key, streaming=True, callbacks=[stream_hander])
          qa_chain = RetrievalQA.from_chain_type(llm,retriever=db.as_retriever())
          result=qa_chain({"query": question})
-
-         st.write(result['result'])
-         st.write("---")
    pass
+
 
 
