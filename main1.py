@@ -95,8 +95,7 @@ if uploaded_file is not None:
    question = st.text_input("질문을 입력하세요")
 
    if st.button("질문하기"):
-      with st.spinner('잠시 기다려주세요...!!') 
-
+      with st.spinner('잠시 기다려주세요...!!') :
          #Stream 출력을 위한 Chat Box 만들기(stream_hander)
          chat_box = st.empty()
          stream_hander = StreamHandler(chat_box)
