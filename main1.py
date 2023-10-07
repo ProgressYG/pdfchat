@@ -12,9 +12,9 @@
 
 #split 와 chroma DB 간의 충돌 해결
 #sqlite3 문제 해결코드
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+#__import__('pysqlite3')
+#import sys
+#sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter  #텍스트를 페이지 단위보다 더 Split하기
