@@ -101,7 +101,7 @@ if uploaded_file is not None:
          stream_hander = StreamHandler(chat_box)
 
          ## python langchain Doc -> USE cases -> Question Answering 참조
-         llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, openai_api_key=openai_key, streaming=True, callbacks=[stream_hander])
+         llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, streaming=True, callbacks=[stream_hander])
          qa_chain = RetrievalQA.from_chain_type(llm,retriever=db.as_retriever())
          result=qa_chain({"query": question})
    pass
